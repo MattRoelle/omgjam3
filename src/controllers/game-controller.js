@@ -10,13 +10,28 @@ const entityCtorLookup = {
 
 class GameController {
 	constructor(params) {
+		this.rotationShader = game.phaser.add.filter("WorldRotation", C.SCREEN_WIDTH, C.SCREEN_HEIGHT);
+		this.rotationShader.originX = 300/C.SCREEN_WIDTH;
+		this.rotationShader.originY = 300/C.SCREEN_HEIGHT;
+		this.worldRotGroup = game.phaser.add.group();
+		//this.worldRotGroup.filters = [this.rotationShader];
+
 		this.collisionLayers = [];
 		this.createLevel();
-		this.createEntities();
-		this.player = new Player();
-		this.player.sprite.position.y = this.map.height*32;
+		this.player = new Player(this.worldRotGroup);
 		game.phaser.camera.follow(this.player.cameraTarget);
-		game.phaser.world.setBounds(0, -1000, 800, 5000);
+		game.phaser.camera.bounds = null;
+
+		this.waveNumber = 0;
+		this.entities = [];
+		this.startWave();
+		this.waveStartedAt = 0;
+	}
+
+	startWave() {
+		this.waveNumber++;
+		this.waveStartedAt = game.phaser.time.now;
+		this.entities.push(new Enemy1(500, 500));
 	}
 
 	createLevel() {
@@ -31,20 +46,17 @@ class GameController {
 				colIdx = j;
 				this.collisionLayers.push(tileLayer);
 			}
+			tileLayer.resizeWorld();
+			this.worldRotGroup.add(tileLayer);
 		}
 		map.setCollisionByExclusion([1], true, colIdx);
 		this.map = map;
-	}
 
-	createEntities() {
-		for(let obj of this.map.objects.entities)  {
-			console.log(obj);
-		}
+		console.log(map);
 	}
 
 	update() {
 		this.player.update();
-		this.player.sprite.bringToTop();
 
 		for(let i = 0; i < this.collisionLayers.length; i++) {
 			const colLayer = this.collisionLayers[i];
@@ -54,10 +66,18 @@ class GameController {
 			}
 		}
 
+		for(let e of this.entities) {
+			e.update();
+		}
+
 		if (this.state == PLAY_STATES.PLAYING) {
 		} else if (this.state == PLAY_STATES.PAUSED) {
 		} else if (this.state == PLAY_STATES.FINISHED) {
 		}
+
+		//game.phaser.world.pivot.set(this.player.sprite.x - C.SCREEN_WIDTH/2, this.player.sprite.y - C.SCREEN_HEIGHT/2);
+		this.rotationShader.theta = -(this.player.angle - Math.PI/2);
+		this.rotationShader.update();
 	}
 
 	render() {

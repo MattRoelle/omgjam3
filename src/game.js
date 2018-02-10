@@ -23,7 +23,7 @@ class Game {
 		this.input  = new Input();
 		this.utils  = new Utils();
 		this.audio  = new GameAudio();
-		this.phaser = new Phaser.Game(800, 568, Phaser.WEBGL, "game-host", this.setup, false, false);
+		this.phaser = new Phaser.Game(600, 600, Phaser.WEBGL, "game-host", this.setup, false, false);
 	}
 
 	switchState(state, stateParams) {
@@ -85,7 +85,7 @@ class Game {
 	showTitle(cb) {
 		const bg = this.phaser.add.graphics(0, 0);
 		bg.beginFill(0xFFFFFF);
-		bg.drawRect(0, 0, 800, 600); 
+		bg.drawRect(0, 0, C.SCREEN_WIDTH, C.SCREEN_HEIGHT); 
 
 		const logoSpr = this.phaser.add.sprite(400, 300, "logo");
 		logoSpr.anchor.set(0.5);

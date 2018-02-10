@@ -16,8 +16,8 @@ class Utils {
 		return `${minutes}:${seconds}:${subseconds}`;
 	}
 
-	explosion(x, y, size) {
-		const explSprite = game.phaser.add.sprite(x, y, size + "expl");
+	effect(x, y, key, group) {
+		const explSprite = game.phaser.add.sprite(x, y, key);
 		explSprite.anchor.set(0.5);
 		explSprite.angle = Math.random()*360;
 		if (Math.random() < 0.5) explSprite.scale.x = -1;
@@ -25,5 +25,6 @@ class Utils {
 		explSprite.animations.add("expl", [0,1,2,3,4,5,6, 7], 50, false);
 		explSprite.animations.getAnimation("expl").killOnComplete = true;
 		explSprite.animations.play("expl");
+		group.add(explSprite);
 	}
 }

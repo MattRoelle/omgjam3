@@ -1,6 +1,6 @@
 class Enemy1 {
-	constructor() {
-
+	constructor(x, y) {
+		this.sprite = game.phaser.add.sprite(x, y, "enemy1");
 	}
 
 	update() {
@@ -12,6 +12,6 @@ class Enemy1 {
 	}
 
 	destroy() {
-
+		this.sprite.destroy();
 	}
 }
