@@ -1,0 +1,24 @@
+{
+  "name": "tge",
+  "version": "1.0.0",
+  "description": "A free and open source video game created by Matthew Roelle (@mattyk1ns) for the One Game A Month jam.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mattykins/1gam-december2017.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mattykins/1gam-december2017/issues"
+  },
+  "homepage": "https://github.com/Mattykins/1gam-december2017#readme",
+  "dependencies": {
+    "node-http-server": "^8.1.2"
+  },
+  "devDependencies": {}
+}
