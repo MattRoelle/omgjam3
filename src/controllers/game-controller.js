@@ -1,37 +1,104 @@
 const PLAY_STATES = {
 	PLAYING: 1,
 	PAUSED: 2,
-	FINISHED: 3
-};
-
-const entityCtorLookup = {
-	"enemy1": Enemy1
+	FINISHED: 3,
+	IN_BETWEEN_WAVES: 4,
+	IN_SHOP: 5
 };
 
 class GameController {
 	constructor(params) {
+		this.state = PLAY_STATES.IN_BETWEEN_WAVES;
+		this.progSvc = new ProgressionService();
+
 		this.rotationShader = game.phaser.add.filter("WorldRotation", C.SCREEN_WIDTH, C.SCREEN_HEIGHT);
 		this.rotationShader.originX = 300/C.SCREEN_WIDTH;
 		this.rotationShader.originY = 300/C.SCREEN_HEIGHT;
 		this.worldRotGroup = game.phaser.add.group();
-		//this.worldRotGroup.filters = [this.rotationShader];
+		this.worldRotGroup.filters = [this.rotationShader];
 
 		this.collisionLayers = [];
 		this.createLevel();
-		this.player = new Player(this.worldRotGroup);
+		this.player = new Player(this.worldRotGroup, this.progSvc);
 		game.phaser.camera.follow(this.player.cameraTarget);
 		game.phaser.camera.bounds = null;
 
 		this.waveNumber = 0;
-		this.entities = [];
+		this.enemies = [];
+		this.startingWave = false;
 		this.startWave();
 		this.waveStartedAt = 0;
+
 	}
 
 	startWave() {
+		if (this.startingWave) return;
+		this.startingWave = true;
+		this.state = PLAY_STATES.IN_BETWEEN_WAVES;
+
 		this.waveNumber++;
 		this.waveStartedAt = game.phaser.time.now;
-		this.entities.push(new Enemy1(500, 500));
+
+		const waveText = game.phaser.add.text(C.SCREEN_WIDTH/2, -200, "WAVE " + this.waveNumber, {
+			font: "60px slkscr",
+			fill: "#ffffff",
+			stroke: "#000000",
+			strokeThickness: 6,
+			align: "center"
+		});
+
+		waveText.fixedToCamera = true;
+		waveText.pivot.set(0.5);
+		waveText.anchor.set(0.5);
+
+		const t = game.phaser.add.tween(waveText.cameraOffset).to({
+			x: 300,
+			y: 200
+		}, 1400, Phaser.Easing.Bounce.Out, true);
+
+		t.start();
+
+
+		setTimeout(() => {
+			game.phaser.add.tween(waveText).to({alpha: 0}, 800, Phaser.Easing.Linear.None, true);
+		}, 2000);
+
+		setTimeout(() => {
+			waveText.destroy();
+			this.startingWave = false;
+			this.state = PLAY_STATES.IN_GAME;
+			this.enemies.push(new BasicEnemy(350, 350, this.worldRotGroup));
+			this.enemies.push(new BasicEnemy(350, 450, this.worldRotGroup));
+			this.enemies.push(new BasicEnemy(350, 550, this.worldRotGroup));
+		}, 3000);
+	}
+
+	startShop() {
+		this.state = PLAY_STATES.IN_SHOP;
+
+		const upgrades = this.progSvc.getUpgradeOptions();
+
+		const selectUpgradeCb = (upg) => {
+			this.progSvc.purchaseUpgrade(upg);
+			this.shopMenu.destroy();
+			this.startWave();
+		};
+
+		const menuOpts = [];
+		for(let upg of upgrades) {
+			menuOpts.push({
+				text: upg.toString() + " " + upg.cost,
+				callback: () => selectUpgradeCb(upg),
+				context: this
+			});
+		}
+
+		console.log(menuOpts);
+		this.shopMenu = new Menu({ 
+			x: 100,
+			y: 100,
+			options: menuOpts
+		});
 	}
 
 	createLevel() {
@@ -51,8 +118,6 @@ class GameController {
 		}
 		map.setCollisionByExclusion([1], true, colIdx);
 		this.map = map;
-
-		console.log(map);
 	}
 
 	update() {
@@ -64,20 +129,48 @@ class GameController {
 			for(let b of this.player.bullets) {
 				game.phaser.physics.arcade.collide(b.sprite, colLayer, () => { b.dead = true });
 			}
+			for(let e of this.enemies) {
+				game.phaser.physics.arcade.collide(e.sprite, colLayer);
+				if (!!e.combatAi.bullets) {
+					for(let b of e.combatAi.bullets) {
+						game.phaser.physics.arcade.collide(b.sprite, colLayer, () => { b.dead = true });
+					}
+				}
+			}
 		}
 
-		for(let e of this.entities) {
+		for(let e of this.enemies) {
 			e.update();
+			for(let b of this.player.bullets) {
+				game.phaser.physics.arcade.collide(b.sprite, e.sprite, () => {
+					b.dead = true;
+					e.onHit();
+				});
+			}
+
+			if (!!e.combatAi.bullets) {
+				for(let b of e.combatAi.bullets) {
+					game.phaser.physics.arcade.collide(b.sprite, this.player.sprite, () => {
+						b.dead = true
+					});
+				}
+			}
 		}
 
-		if (this.state == PLAY_STATES.PLAYING) {
-		} else if (this.state == PLAY_STATES.PAUSED) {
-		} else if (this.state == PLAY_STATES.FINISHED) {
+		this.enemies = this.enemies.filter(e => !e.dead);
+
+		if (this.state == PLAY_STATES.IN_GAME) {
+			if (this.enemies.length <= 0) {
+				this.startShop();
+			}
 		}
 
 		//game.phaser.world.pivot.set(this.player.sprite.x - C.SCREEN_WIDTH/2, this.player.sprite.y - C.SCREEN_HEIGHT/2);
 		this.rotationShader.theta = -(this.player.angle - Math.PI/2);
 		this.rotationShader.update();
+	}
+
+	inGameUpdate() {
 	}
 
 	render() {

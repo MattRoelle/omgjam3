@@ -12,6 +12,8 @@ class Input {
 		this.a = game.phaser.input.keyboard.addKey(Phaser.Keyboard.A);
 		this.s = game.phaser.input.keyboard.addKey(Phaser.Keyboard.S);
 		this.d = game.phaser.input.keyboard.addKey(Phaser.Keyboard.D);
+		this.q = game.phaser.input.keyboard.addKey(Phaser.Keyboard.Q);
+		this.e = game.phaser.input.keyboard.addKey(Phaser.Keyboard.E);
 		this.pause = game.phaser.input.keyboard.addKey(Phaser.Keyboard.P);
 
 		this.onDown = new Phaser.Signal();
@@ -23,6 +25,8 @@ class Input {
 
 		this.s.onDown.add(() => this.onDown.dispatch(), this);
 		this.movement.down.onDown.add(() => this.onDown.dispatch(), this);
+
+		this.space.onDown.add(() => this.onMain.dispatch(), this);
 	}
 
 	update() {
@@ -34,4 +38,6 @@ class Input {
 	down() { return this.movement.down.isDown || this.s.isDown  || this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) > 0.1; } 
 	isShootDown() { return this.space.isDown || this.gamepad.isDown(Phaser.Gamepad.XBOX360_A); }
 	isPauseDown() { return this.pause.isDown || this.gamepad.isDown(Phaser.Gamepad.XBOX360_START); }
+	strafeLeft() { return this.q.isDown; }
+	strafeRight() { return this.e.isDown; }
 }

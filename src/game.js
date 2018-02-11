@@ -56,6 +56,9 @@ class Game {
 	}
 
 	create() {
+		game.phaser.physics.arcade.TILE_BIAS = 40;
+		initWorldShader(this.phaser.cache.getText("world-rotation"));
+		initEnemyOverlayShader(this.phaser.cache.getText("enemy-overlay"));
 		this.phaser.physics.startSystem(Phaser.Physics.ARCADE);
 		this.input.init();
 

@@ -1,46 +1,72 @@
 precision mediump float;
+uniform float time;
+uniform vec2 resolution;
+varying vec2 vTextureCoord;
+uniform sampler2D uSampler;
+uniform vec2 uOrigin;
+uniform float uTheta;
+uniform float uRadius;
+uniform vec4 uEnemyPositions;
 
-uniform float     time;
-uniform vec2      resolution;
-uniform vec2      mouse;
+const int ps = 8; // use values > 1..10 for oldskool
 
-// Yuldashev Mahmud Effect took from shaderToy mahmud9935@gmail.com
+const float PI = 3.14159265359;
 
-float snoise(vec3 uv, float res) {
-	const vec3 s = vec3(1e0, 1e2, 1e3);
+void retroPlasma(void) {
+	float x = (gl_FragCoord.x/resolution.x * 640.0);
+    float y = (gl_FragCoord.y/resolution.y * 480.0);
 
-	uv *= res;
+    if (ps > 0) {
+        x = float(int(x / float(ps)) * ps);
+        y = float(int(y / float(ps)) * ps);
+    }
 
-	vec3 uv0 = floor(mod(uv, res))*s;
-	vec3 uv1 = floor(mod(uv+vec3(1.), res))*s;
+    float t = time*3.0;
 
-	vec3 f = fract(uv); f = f*f*(3.0-2.0*f);
+    float mov0 = x+y+sin(t)*10.+sin(x/90.)*70.+t*2.;
+    float mov1 = (mov0 / 5. + sin(mov0 / 30.))/ 10. + t * 3.;
+    float mov2 = mov1 + sin(mov1)*5. + t*1.0;
+    float cl1 = sin(sin(mov1/4. + t)+mov1);
+    float c1 = cl1 +mov2/2.-mov1-mov2+t;
+    float c2 = sin(c1+sin(mov0/100.+t)+sin(y/57.+t/50.)+sin((x+y)/200.)*2.);
+    float c3 = abs(sin(c2+cos((mov1+mov2+c2) / 10.)+cos((mov2) / 10.)+sin(x/80.)));
 
-	vec4 v = vec4(uv0.x+uv0.y+uv0.z, uv1.x+uv0.y+uv0.z,
-			uv0.x+uv1.y+uv0.z, uv1.x+uv1.y+uv0.z);
+    float dc = float(16-ps);
 
-	vec4 r = fract(sin(v*1e-1)*1e3);
-	float r0 = mix(mix(r.x, r.y, f.x), mix(r.z, r.w, f.x), f.y);
+    if (ps > 0) {
+        cl1 = float(int(cl1*dc))/dc;
+        c2 = float(int(c2*dc))/dc;
+        c3 = float(int(c3*dc))/dc;
+    }
 
-	r = fract(sin((v + uv1.z - uv0.z)*1e-1)*1e3);
-	float r1 = mix(mix(r.x, r.y, f.x), mix(r.z, r.w, f.x), f.y);
-
-	return mix(r0, r1, f.z)*2.-1.;
+    gl_FragColor = vec4(cl1,c2,c3,1.0);
 }
 
-void main( void ) {
-	vec2 p = -.5 + gl_FragCoord.xy / resolution.xy;
-	p.x *= resolution.x/resolution.y;
+void main(void) {
+	float s = sin(uTheta);
+	float c = cos(uTheta);
 
-	float color = 3.0 - (3.*length(2.*p));
+    vec4 color = texture2D(uSampler, vec2(
+		c*(vTextureCoord.x-uOrigin.x) - s*(vTextureCoord.y-uOrigin.y),
+		s*(vTextureCoord.x-uOrigin.x) + c*(vTextureCoord.y-uOrigin.y)
+	) + uOrigin);
 
-	vec3 coord = vec3(atan(p.x,p.y)/6.2832+.5, length(p)*.4, .5);
-
-	for(int i = 1; i <= 7; i++)
-	{
-		float power = pow(2.0, float(i));
-		color += (1.5 / power) * snoise(coord + vec3(0.,-time*.05, time*.01), power*16.);
+	float distance = distance(vTextureCoord, uOrigin);
+	if (distance < uRadius) {
+		gl_FragColor = color;
+	} else if (distance < 0.5) {
+		retroPlasma();
+		vec2 pos = (gl_FragCoord.xy/resolution.xy) + vec2(0.5, 0.5);
+		float ringAngle = atan(pos.y/pos.x);
+		float d1 = (ringAngle);
+		gl_FragColor = vec4(0, 0, 0, 1);
+		gl_FragColor.r = (d1);
+		/*
+		gl_FragColor.r *= 1.0 - smoothstep(-0.1, 0.1, d1);
+		gl_FragColor.g *= smoothstep(-0.1, 0.1, d1);
+		gl_FragColor.b *= smoothstep(-0.1, 0.1, d1);
+		*/
+	} else {
 	}
-
-	gl_FragColor = vec4( color, pow(max(color,0.),2.)*0.4, pow(max(color,0.),3.)*0.15 , 1.0);
 }
+

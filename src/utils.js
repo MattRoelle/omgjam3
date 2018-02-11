@@ -27,4 +27,33 @@ class Utils {
 		explSprite.animations.play("expl");
 		group.add(explSprite);
 	}
+
+	dmgNumber(x, y, n, group) {
+		const text = game.phaser.add.text(x, y, n, {
+			font: "22px slkscr",
+			fill: "#ff0000",
+			stroke: "#000000",
+			strokeThickness: 6,
+			align: "center"
+		});
+		text.angle = game.controller.player.sprite.angle;
+		group.add(text);
+		text.anchor.set(0.5);
+
+		const theta = Math.random()*Math.PI*2;
+		game.phaser.add.tween(text.position).to({
+			x: x + Math.cos(theta)*((Math.random()*20)+40),
+			y: y + Math.sin(theta)*((Math.random()*20)+40)
+		}, 400, Phaser.Easing.Bounce.Out, true);
+
+		setTimeout(() => {
+			game.phaser.add.tween(text).to({
+				alpha: 0
+			}, 400, Phaser.Easing.Linear.None, true);
+		}, 700);
+
+		setTimeout(() => {
+			text.destroy();
+		}, 1100);
+	}
 }
