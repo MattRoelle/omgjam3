@@ -1,6 +1,7 @@
 class Enemy {
 	constructor(x, y, group) {
 		this.init(x, y);
+
 		this.sprite.anchor.set(0.5);
 		this.group = group;
 		group.add(this.sprite);
@@ -22,10 +23,17 @@ class Enemy {
 
 		this.movementAi = this.movementAi || new MovementAI();
 		this.combatAi = this.combatAi || new CombatAI();
+
+		this.postInit();
+
+		this.hpBar = game.phaser.add.graphics(x, y - 20);
+		this.group.add(this.hpBar);
 	}
 
 	init(x, y) {
 	}
+
+	postInit(){}
 
 	update() {
 		if (this.dead) return;
@@ -43,6 +51,22 @@ class Enemy {
 
 		this.movementAi.update();
 		this.combatAi.update();
+
+		const w = Math.max(0, this.health/this.maxHealth)*50;
+		if (this.rotHpBar) {
+			this.hpBar.angle = this.sprite.angle;
+
+			const theta  = this.sprite.angle*Math.PI/180;
+
+			this.hpBar.position.x = this.sprite.position.x + Math.cos(theta)*30;
+			this.hpBar.position.y = this.sprite.position.y + Math.sin(theta)*30;
+		} else {
+			this.hpBar.position.x = this.sprite.position.x;
+			this.hpBar.position.y = this.sprite.position.y - 20;
+		}
+		this.hpBar.anchor.set(0.5);
+		this.hpBar.drawRect(-w, 0, w, 10);
+		this.hpBar.beginFill(0xFF0000);
 	}
 
 	render() {
@@ -57,10 +81,11 @@ class Enemy {
 	}
 
 	onHit() {
-		const damage = Math.floor(Math.random()*5) + 5000;
+		const damage = Math.floor(Math.random()*5) + 5;
 		this.lastHitAt = game.phaser.time.now;
 		game.utils.dmgNumber(this.sprite.x, this.sprite.y, damage, this.group);
 		this.health -= damage;
+		this.hpBar.clear();
 	}
 
 	destroy() {
@@ -181,5 +206,8 @@ class EnemyBullet {
 	destroy() {
 		game.utils.effect(this.sprite.position.x, this.sprite.position.y, "green-smexpl", this.group);
 		this.sprite.destroy();
+		if (!!this.hpBar) {
+			this.hpBar.destroy();
+		}
 	}
 }

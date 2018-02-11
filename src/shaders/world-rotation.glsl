@@ -39,7 +39,28 @@ void retroPlasma(void) {
         c3 = float(int(c3*dc))/dc;
     }
 
-    gl_FragColor = vec4(cl1,c2,c3,1.0);
+    gl_FragColor = vec4(cl1,c2,0.25,1.0);
+}
+
+void outside(void) {
+	gl_FragColor = vec4(0, 0, 0, 1);
+	float t = time*0.5;
+	vec2 vt = vec2(mod(t, 1.0), mod(t, 1.0));
+	vec2 modTexCoord = mod(vTextureCoord.xy, 0.1)*10.0;
+	vec2 vd = 1.0 - (abs(vt - modTexCoord)/0.01);
+
+	//gl_FragColor = vec4(0.4, 0.9, 0.2, 1.0);
+
+	/*
+	float xt = mod(t, 1.0);
+	float yt = mod(t, 1.0);
+	float xd = 1.0 - (abs(xt - vTextureCoord.x)/0.01);
+	float yd = 1.0 - (abs(yt - vTextureCoord.y)/0.01);
+	*/
+	gl_FragColor = (1.0 - vec4(vd.x*vd.y*0.1));
+	if (gl_FragColor.r < 0.1) {
+		gl_FragColor = vec4(0.2, 0.3, 0.1, 1.0);
+	}
 }
 
 void main(void) {
@@ -55,18 +76,11 @@ void main(void) {
 	if (distance < uRadius) {
 		gl_FragColor = color;
 	} else if (distance < 0.5) {
-		retroPlasma();
-		vec2 pos = (gl_FragCoord.xy/resolution.xy) + vec2(0.5, 0.5);
-		float ringAngle = atan(pos.y/pos.x);
-		float d1 = (ringAngle);
-		gl_FragColor = vec4(0, 0, 0, 1);
-		gl_FragColor.r = (d1);
-		/*
-		gl_FragColor.r *= 1.0 - smoothstep(-0.1, 0.1, d1);
-		gl_FragColor.g *= smoothstep(-0.1, 0.1, d1);
-		gl_FragColor.b *= smoothstep(-0.1, 0.1, d1);
-		*/
+		gl_FragColor = vec4((distance )/1.5);
 	} else {
+		//outside();
 	}
+
+	gl_FragColor.a = 1.0;
 }
 

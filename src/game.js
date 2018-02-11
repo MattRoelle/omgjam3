@@ -23,7 +23,7 @@ class Game {
 		this.input  = new Input();
 		this.utils  = new Utils();
 		this.audio  = new GameAudio();
-		this.phaser = new Phaser.Game(600, 600, Phaser.WEBGL, "game-host", this.setup, false, false);
+		this.phaser = new Phaser.Game(C.SCREEN_WIDTH, C.SCREEN_HEIGHT, Phaser.WEBGL, "game-host", this.setup, false, false);
 	}
 
 	switchState(state, stateParams) {

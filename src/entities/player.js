@@ -72,11 +72,11 @@ class Player {
 		const t = game.phaser.time.now;
 		if (t - this.lastShotAt > this.progSvc.playerStats.rateOfFire) {
 			this.lastShotAt = t;
-			this.bullets.push(new PlayerBullet(this.sprite.position.x, this.sprite.position.y, this.angle, this.group, this.progSvc.playerStats.shotSpeed));
+			this.bullets.push(new PlayerBullet(this.sprite.position.x, this.sprite.position.y, this.angle, this.group, this.progSvc.playerStats.shotSpeed, this.progSvc.playerStats.range));
 
 			const theta = this.sprite.angle*Math.PI/180 - (Math.PI/2);
-			this.sprite.body.velocity.x += Math.cos(theta)*-180;
-			this.sprite.body.velocity.y += Math.sin(theta)*-180;
+			this.sprite.body.velocity.x += Math.cos(theta)*-100;
+			this.sprite.body.velocity.y += Math.sin(theta)*-100;
 		}
 	}
 
@@ -90,12 +90,14 @@ class Player {
 }
 
 class PlayerBullet {
-	constructor(x, y, theta, group, shotSpeed) {
+	constructor(x, y, theta, group, shotSpeed, range) {
+		this.range = range;
 		this.sprite = game.phaser.add.sprite(x, y, "bullet");
 		this.sprite.anchor.set(0.5);
 		game.phaser.physics.arcade.enable(this.sprite);
 		this.sprite.body.setSize(32, 32, 0, 0);
 		this.dead = false;
+		this.spawnAt = game.phaser.time.now;
 
 		theta += (Math.random() - 0.5)*0.3;
 
@@ -114,15 +116,20 @@ class PlayerBullet {
 	}
 
 	onOverlap() {
-		console.log("overlapping");
 		this.dead = true;
 	}
 
 	update() {
+		if (game.phaser.time.now > this.spawnAt + this.range) {
+			this.dead = true;
+			this.destroy(true);
+		}
 	}
 
-	destroy() {
-		game.utils.effect(this.sprite.position.x, this.sprite.position.y, "smexpl", this.group);
+	destroy(noExpl) {
+		if (!noExpl) {
+			game.utils.effect(this.sprite.position.x, this.sprite.position.y, "smexpl", this.group);
+		}
 		this.sprite.destroy();
 	}
 }

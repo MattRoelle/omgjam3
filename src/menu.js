@@ -8,7 +8,7 @@ class Menu {
 		for(let i = 0; i < menu.options.length; i++) {
 			const o = menu.options[i];
 
-			const text = game.phaser.add.text(game.phaser.camera.x + menu.x, game.phaser.camera.y + menu.y + (i*40), o.text, {
+			const text = game.phaser.add.text(menu.x, menu.y + (i*40), o.text, {
 				font: "32px slkscr",
 				fill: i == 0 ? "#FF0000" : "#FFFFFF",
 				align: "left",

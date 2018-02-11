@@ -12,8 +12,8 @@ class GameController {
 		this.progSvc = new ProgressionService();
 
 		this.rotationShader = game.phaser.add.filter("WorldRotation", C.SCREEN_WIDTH, C.SCREEN_HEIGHT);
-		this.rotationShader.originX = 300/C.SCREEN_WIDTH;
-		this.rotationShader.originY = 300/C.SCREEN_HEIGHT;
+		this.rotationShader.originX = 350/C.SCREEN_WIDTH;
+		this.rotationShader.originY = 350/C.SCREEN_HEIGHT;
 		this.worldRotGroup = game.phaser.add.group();
 		this.worldRotGroup.filters = [this.rotationShader];
 
@@ -26,13 +26,20 @@ class GameController {
 		this.waveNumber = 0;
 		this.enemies = [];
 		this.startingWave = false;
+		this.enemyMarkers = [];
 		this.startWave();
 		this.waveStartedAt = 0;
 
+		//this.uiOverlay = game.phaser.add.sprite(0, 0, "overlay");
+		//this.uiOverlay.fixedToCamera = true;
 	}
 
 	startWave() {
 		if (this.startingWave) return;
+
+		for(let m of this.enemyMarkers) m.destroy();
+		this.enemyMarkers = [];
+
 		this.startingWave = true;
 		this.state = PLAY_STATES.IN_BETWEEN_WAVES;
 
@@ -52,7 +59,7 @@ class GameController {
 		waveText.anchor.set(0.5);
 
 		const t = game.phaser.add.tween(waveText.cameraOffset).to({
-			x: 300,
+			x: 350,
 			y: 200
 		}, 1400, Phaser.Easing.Bounce.Out, true);
 
@@ -65,11 +72,15 @@ class GameController {
 
 		setTimeout(() => {
 			waveText.destroy();
-			this.startingWave = false;
 			this.state = PLAY_STATES.IN_GAME;
-			this.enemies.push(new BasicEnemy(350, 350, this.worldRotGroup));
+			this.enemies.push(new BouncerEnemy(350, 350, this.worldRotGroup));
 			this.enemies.push(new BasicEnemy(350, 450, this.worldRotGroup));
 			this.enemies.push(new BasicEnemy(350, 550, this.worldRotGroup));
+
+			for(let e of this.enemies) {
+				this.enemyMarkers.push(new Marker(e, this.player, this.worldRotGroup));
+			}
+			this.startingWave = false;
 		}, 3000);
 	}
 
@@ -93,7 +104,6 @@ class GameController {
 			});
 		}
 
-		console.log(menuOpts);
 		this.shopMenu = new Menu({ 
 			x: 100,
 			y: 100,
@@ -168,6 +178,10 @@ class GameController {
 		//game.phaser.world.pivot.set(this.player.sprite.x - C.SCREEN_WIDTH/2, this.player.sprite.y - C.SCREEN_HEIGHT/2);
 		this.rotationShader.theta = -(this.player.angle - Math.PI/2);
 		this.rotationShader.update();
+
+		for(let e of this.enemyMarkers) {
+			e.update();
+		}
 	}
 
 	inGameUpdate() {
@@ -175,5 +189,38 @@ class GameController {
 
 	render() {
 		this.player.render();
+	}
+}
+
+class Marker {
+	constructor(enemy, player, group) {
+		this.sprite = game.phaser.add.sprite(0, 0, "marker");
+		this.sprite.anchor.set(0.5);
+		this.enemy = enemy;
+		this.player = player;
+		group.add(this.sprite);
+	}
+
+	update() {
+		const theta = Math.atan2(
+			this.enemy.sprite.position.y - this.player.sprite.position.y,
+			this.enemy.sprite.position.x - this.player.sprite.position.x
+		) - Math.PI;
+
+		this.sprite.angle = theta*180/Math.PI - (90);
+
+		const c = Math.cos(theta);
+		const s = Math.sin(theta);
+
+		this.sprite.position.x = this.player.sprite.position.x - c*320;
+		this.sprite.position.y = this.player.sprite.position.y - s*320;
+
+		this.sprite.bringToTop();
+
+		this.sprite.alpha = this.enemy.dead || game.utils.dist(this.enemy.sprite.position.x, this.enemy.sprite.position.y, this.player.sprite.position.x, this.player.sprite.position.y) < 350 ? 0 : 1;
+	}
+
+	destroy() {
+		this.sprite.destroy();
 	}
 }

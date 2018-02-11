@@ -11,9 +11,10 @@ class ProgressionService {
 		this.credits = 10000000;
 
 		this.playerStats = {
-			rateOfFire: 100,
+			rateOfFire: 425,
 			shotSpeed: 600,
-			damage: 5
+			damage: 5,
+			range: 400
 		};
 	}
 
