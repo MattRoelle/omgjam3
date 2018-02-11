@@ -26,8 +26,10 @@ class Enemy {
 
 		this.postInit();
 
+        /*
 		this.hpBar = game.phaser.add.graphics(x, y - 20);
 		this.group.add(this.hpBar);
+        */
 	}
 
 	init(x, y) {
@@ -53,6 +55,7 @@ class Enemy {
 		this.combatAi.update();
 
 		const w = Math.max(0, this.health/this.maxHealth)*50;
+        /*
 		if (this.rotHpBar) {
 			this.hpBar.angle = this.sprite.angle;
 
@@ -67,6 +70,7 @@ class Enemy {
 		this.hpBar.anchor.set(0.5);
 		this.hpBar.drawRect(-w, 0, w, 10);
 		this.hpBar.beginFill(0xFF0000);
+        */
 	}
 
 	render() {
@@ -85,7 +89,7 @@ class Enemy {
 		this.lastHitAt = game.phaser.time.now;
 		game.utils.dmgNumber(this.sprite.x, this.sprite.y, damage, this.group);
 		this.health -= damage;
-		this.hpBar.clear();
+		//this.hpBar.clear();
 	}
 
 	destroy() {
@@ -206,8 +210,10 @@ class EnemyBullet {
 	destroy() {
 		game.utils.effect(this.sprite.position.x, this.sprite.position.y, "green-smexpl", this.group);
 		this.sprite.destroy();
+        /*
 		if (!!this.hpBar) {
 			this.hpBar.destroy();
 		}
+        */
 	}
 }

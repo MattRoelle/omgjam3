@@ -6,6 +6,7 @@ uniform sampler2D uSampler;
 uniform vec2 uOrigin;
 uniform float uTheta;
 uniform float uRadius;
+uniform vec2 uInShop;
 uniform vec4 uEnemyPositions;
 
 const int ps = 8; // use values > 1..10 for oldskool
@@ -74,7 +75,11 @@ void main(void) {
 
 	float distance = distance(vTextureCoord, uOrigin);
 	if (distance < uRadius) {
-		gl_FragColor = color;
+        if (uInShop.x > 0.0) {
+            retroPlasma();
+        } else {
+            gl_FragColor = color;
+        }
 	} else if (distance < 0.5) {
 		gl_FragColor = vec4((distance )/1.5);
 	} else {

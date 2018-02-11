@@ -4,6 +4,7 @@ function initWorldShader(s) {
     	Phaser.Filter.call(this, game);
 
 		this.uniforms.uEnemyPositions = { type: "4f", value: { x: 0.1, y: 2, z: 0.3, w: 3 } };
+		this.uniforms.uInShop = { type: "2f", value: { x: 0, y: 0 } };
 		this.uniforms.uOrigin = { type: "2f", value: { x: 0, y: 0 } };
 		this.uniforms.uTheta = { type: "1f", value: 0.5 };
 		this.uniforms.uRadius = { type: "1f", value: 0.495 };
@@ -41,6 +42,16 @@ function initWorldShader(s) {
     	set: function(value) {
         	this.dirty = true;
         	this.uniforms.uTheta.value = value;
+    	}
+	});
+
+	Object.defineProperty(Phaser.Filter.WorldRotation.prototype, "inShop", {
+    	get: function() {
+        	return this.uniforms.uInShop.value.x;
+    	},
+    	set: function(value) {
+        	this.dirty = true;
+        	this.uniforms.uInShop.value.x = value;
     	}
 	});
 }

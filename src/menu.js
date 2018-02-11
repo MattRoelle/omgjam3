@@ -13,6 +13,8 @@ class Menu {
 				fill: i == 0 ? "#FF0000" : "#FFFFFF",
 				align: "left",
 				wordWrap: true,
+                stroke: "#000000",
+                strokeThickness: 8,
 				wordWrapWidth: 600
 			});
 			text.fixedToCamera = true;

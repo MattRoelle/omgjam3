@@ -3,7 +3,8 @@ const PLAY_STATES = {
 	PAUSED: 2,
 	FINISHED: 3,
 	IN_BETWEEN_WAVES: 4,
-	IN_SHOP: 5
+	IN_SHOP: 5,
+    ENDING_WAVE: 6
 };
 
 class GameController {
@@ -73,8 +74,8 @@ class GameController {
 		setTimeout(() => {
 			waveText.destroy();
 			this.state = PLAY_STATES.IN_GAME;
-			this.enemies.push(new BouncerEnemy(350, 350, this.worldRotGroup));
-			this.enemies.push(new BasicEnemy(350, 450, this.worldRotGroup));
+			//this.enemies.push(new BouncerEnemy(350, 350, this.worldRotGroup));
+			//this.enemies.push(new BasicEnemy(350, 450, this.worldRotGroup));
 			this.enemies.push(new BasicEnemy(350, 550, this.worldRotGroup));
 
 			for(let e of this.enemies) {
@@ -84,31 +85,74 @@ class GameController {
 		}, 3000);
 	}
 
-	startShop() {
-		this.state = PLAY_STATES.IN_SHOP;
+    endWave() {
+        if (this.state == PLAY_STATES.ENDING_WAVE) return;
 
-		const upgrades = this.progSvc.getUpgradeOptions();
+        this.state = PLAY_STATES.ENDING_WAVE;
 
-		const selectUpgradeCb = (upg) => {
-			this.progSvc.purchaseUpgrade(upg);
-			this.shopMenu.destroy();
-			this.startWave();
-		};
-
-		const menuOpts = [];
-		for(let upg of upgrades) {
-			menuOpts.push({
-				text: upg.toString() + " " + upg.cost,
-				callback: () => selectUpgradeCb(upg),
-				context: this
-			});
-		}
-
-		this.shopMenu = new Menu({ 
-			x: 100,
-			y: 100,
-			options: menuOpts
+		const endText = game.phaser.add.text(C.SCREEN_WIDTH/2, -200, "WAVE COMPLETE", {
+			font: "60px slkscr",
+			fill: "#ffffff",
+			stroke: "#000000",
+			strokeThickness: 6,
+			align: "center"
 		});
+
+		endText.fixedToCamera = true;
+		endText.pivot.set(0.5);
+		endText.anchor.set(0.5);
+
+		const t = game.phaser.add.tween(endText.cameraOffset).to({
+			x: 350,
+			y: 200
+		}, 1400, Phaser.Easing.Bounce.Out, true);
+
+		setTimeout(() => {
+			game.phaser.add.tween(endText).to({alpha: 0}, 800, Phaser.Easing.Linear.None, true);
+		}, 2000);
+
+		setTimeout(() => {
+			endText.destroy();
+            this.startShop();
+			this.startingWave = false;
+		}, 3000);
+    }
+
+	startShop() {
+        if (this.state == PLAY_STATES.IN_SHOP) return;
+
+		this.state = PLAY_STATES.IN_SHOP;
+        game.phaser.camera.fade(0x000000, 800);
+
+        setTimeout(() => {
+            this.rotationShader.inShop = 1;
+            game.phaser.camera.resetFX();
+            game.phaser.camera.flash(0x000000, 800);
+
+            const upgrades = this.progSvc.getUpgradeOptions();
+
+            const selectUpgradeCb = (upg) => {
+                this.progSvc.purchaseUpgrade(upg);
+                this.shopMenu.destroy();
+                this.startWave();
+                this.rotationShader.inShop = 0;
+            };
+
+            const menuOpts = [];
+            for(let upg of upgrades) {
+                menuOpts.push({
+                    text: upg.toString() + " " + upg.cost,
+                    callback: () => selectUpgradeCb(upg),
+                    context: this
+                });
+            }
+
+            this.shopMenu = new Menu({ 
+                x: 100,
+                y: 100,
+                options: menuOpts
+            });
+        }, 1000);
 	}
 
 	createLevel() {
@@ -171,7 +215,7 @@ class GameController {
 
 		if (this.state == PLAY_STATES.IN_GAME) {
 			if (this.enemies.length <= 0) {
-				this.startShop();
+				this.endWave();
 			}
 		}
 

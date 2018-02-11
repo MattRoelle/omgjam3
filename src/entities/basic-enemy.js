@@ -1,8 +1,8 @@
 class BasicEnemy extends Enemy {
 	init(x, y) {
 		this.sprite = game.phaser.add.sprite(x, y, "enemy1");
-		this.maxHealth = 50;
-		this.health = 50;
+		this.maxHealth = 20;
+		this.health = 20;
 
 		this.movementAi = new FollowMovementAI(this);
 		this.movementAi.speed = 4;
