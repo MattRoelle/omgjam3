@@ -10,6 +10,14 @@ class Player {
 		this.sprite.body.bounce.y = 0.8;
 		this.sprite.body.immovable = true;
 		this.cameraTarget = game.phaser.add.sprite(400, 500);
+		this.lastHitAt = 0;
+
+
+		this.overlayShader = game.phaser.add.filter("EnemyOverlay", this.sprite.texture.width, this.sprite.texture.height);
+		this.overlayShader.colorR = 1;
+		this.overlayShader.colorG = 0;
+		this.overlayShader.colorB = 0;
+		this.sprite.filters = [this.overlayShader];
 
 		this.bullets = [];
 		this.angle = 0;
@@ -19,10 +27,21 @@ class Player {
 
 		this.group = group;
 		group.add(this.sprite);
+		this.dead = false;
 	
 	}
 
 	update() {
+		if (this.dead) return;
+		const t = game.phaser.time.now;
+		this.overlayShader.update();
+
+		if (t - this.lastHitAt < 80) {
+			this.overlayShader.colorA = 1;
+		} else {
+			this.overlayShader.colorA = 0;
+		}
+
 		let rx = 0, y = 0, sx = 0;
 
 		if       ( game.input.left()   ) rx = -1;
@@ -48,8 +67,8 @@ class Player {
 			const magnitude = game.utils.dist(this.sprite.body.velocity.x, this.sprite.body.velocity.y, 0, 0);
 			if (magnitude < C.PLAYER_MAX_SPEED) {
 				y = y || 1;
-				this.sprite.body.velocity.x += Math.cos(theta)*C.PLAYER_BASE_SPEED*y;
-				this.sprite.body.velocity.y += Math.sin(theta)*C.PLAYER_BASE_SPEED*y;
+				this.sprite.body.velocity.x += Math.cos(theta)*this.progSvc.playerStats.speed.value*y;
+				this.sprite.body.velocity.y += Math.sin(theta)*this.progSvc.playerStats.speed.value*y;
 			}
 		}
 
@@ -70,13 +89,17 @@ class Player {
 
 	shoot() {
 		const t = game.phaser.time.now;
-		if (t - this.lastShotAt > this.progSvc.playerStats.rateOfFire) {
+		if (t - this.lastShotAt > this.progSvc.playerStats.rateOfFire.value) {
 			this.lastShotAt = t;
-			this.bullets.push(new PlayerBullet(this.sprite.position.x, this.sprite.position.y, this.angle, this.group, this.progSvc.playerStats.shotSpeed, this.progSvc.playerStats.range));
+
+			let damage = this.progSvc.playerStats.damage.value;
+			damage *= (Math.random()*0.5)+1;
+			damage = Math.round(damage);
+			this.bullets.push(new PlayerBullet(this.sprite.position.x, this.sprite.position.y, this.angle, this.group, this.progSvc.playerStats.shotSpeed.value, this.progSvc.playerStats.range.value, damage, this.progSvc.playerStats.accuracy.value));
 
 			const theta = this.sprite.angle*Math.PI/180 - (Math.PI/2);
-			this.sprite.body.velocity.x += Math.cos(theta)*-100;
-			this.sprite.body.velocity.y += Math.sin(theta)*-100;
+			//this.sprite.body.velocity.x += Math.cos(theta)*-50;
+			//this.sprite.body.velocity.y += Math.sin(theta)*-50;
 		}
 	}
 
@@ -90,9 +113,10 @@ class Player {
 }
 
 class PlayerBullet {
-	constructor(x, y, theta, group, shotSpeed, range) {
+	constructor(x, y, theta, group, shotSpeed, range, damage, accuracy) {
 		this.range = range;
 		this.sprite = game.phaser.add.sprite(x, y, "bullet");
+		this.damage = damage;
 		this.sprite.anchor.set(0.5);
 		game.phaser.physics.arcade.enable(this.sprite);
 		this.sprite.body.setSize(32, 32, 0, 0);

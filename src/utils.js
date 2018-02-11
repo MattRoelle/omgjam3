@@ -28,10 +28,11 @@ class Utils {
 		group.add(explSprite);
 	}
 
-	dmgNumber(x, y, n, group) {
+	dmgNumber(x, y, n, group, color) {
+		color = color || "#ff0000";
 		const text = game.phaser.add.text(x, y, n, {
 			font: "22px slkscr",
-			fill: "#ff0000",
+			fill: color,
 			stroke: "#000000",
 			strokeThickness: 6,
 			align: "center"

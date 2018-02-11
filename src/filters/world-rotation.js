@@ -7,7 +7,7 @@ function initWorldShader(s) {
 		this.uniforms.uInShop = { type: "2f", value: { x: 0, y: 0 } };
 		this.uniforms.uOrigin = { type: "2f", value: { x: 0, y: 0 } };
 		this.uniforms.uTheta = { type: "1f", value: 0.5 };
-		this.uniforms.uRadius = { type: "1f", value: 0.495 };
+		this.uniforms.uRadius = { type: "1f", value: 0.497 };
 
 		this.fragmentSrc = s;
 	};

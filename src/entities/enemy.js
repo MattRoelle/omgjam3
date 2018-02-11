@@ -1,5 +1,6 @@
 class Enemy {
-	constructor(x, y, group) {
+	constructor(x, y, group, progSvc) {
+		this.progSvc = progSvc;
 		this.init(x, y);
 
 		this.sprite.anchor.set(0.5);
@@ -18,7 +19,6 @@ class Enemy {
 		this.sprite.filters = [this.overlayShader];
 
 		this.lastHitAt = 0;
-		this.health = this.health || 50;
 		this.dead = false;
 
 		this.movementAi = this.movementAi || new MovementAI();
@@ -84,8 +84,7 @@ class Enemy {
 		this.destroy();
 	}
 
-	onHit() {
-		const damage = Math.floor(Math.random()*5) + 5;
+	onHit(damage) {
 		this.lastHitAt = game.phaser.time.now;
 		game.utils.dmgNumber(this.sprite.x, this.sprite.y, damage, this.group);
 		this.health -= damage;

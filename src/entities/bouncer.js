@@ -4,7 +4,17 @@ class BouncerEnemy extends Enemy {
 		this.sprite.animations.add("idle", [0, 1, 2, 3, 4], 10, true);
 		this.sprite.animations.play("idle");
 		this.maxHealth = 50;
-		this.health = 50;
+
+
+		if (this.progSvc.waveNumber <= 3) {
+			this.health = 20;
+			this.health += this.progSvc.waveNumber*5;
+		} else {
+			this.health = 10;
+			for(let i = 0; i < this.progSvc.waveNumber - 1; i++) {
+				this.health *= 1.8;
+			}
+		}
 
 		this.movementAi = new MovementAI(this);
 

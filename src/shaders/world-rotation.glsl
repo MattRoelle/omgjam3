@@ -22,7 +22,7 @@ void retroPlasma(void) {
         y = float(int(y / float(ps)) * ps);
     }
 
-    float t = time*3.0;
+    float t = time*5.0;
 
     float mov0 = x+y+sin(t)*10.+sin(x/90.)*70.+t*2.;
     float mov1 = (mov0 / 5. + sin(mov0 / 30.))/ 10. + t * 3.;
@@ -40,28 +40,38 @@ void retroPlasma(void) {
         c3 = float(int(c3*dc))/dc;
     }
 
-    gl_FragColor = vec4(cl1,c2,0.25,1.0);
+    gl_FragColor = vec4(cl1,c2,c3,1.0);
 }
 
-void outside(void) {
-	gl_FragColor = vec4(0, 0, 0, 1);
-	float t = time*0.5;
-	vec2 vt = vec2(mod(t, 1.0), mod(t, 1.0));
-	vec2 modTexCoord = mod(vTextureCoord.xy, 0.1)*10.0;
-	vec2 vd = 1.0 - (abs(vt - modTexCoord)/0.01);
+float rand(vec2 co) {
+	return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+}
 
-	//gl_FragColor = vec4(0.4, 0.9, 0.2, 1.0);
+void outside(float distance) {
+	// base color
+	vec4 baseColor = vec4(1.0 - distance);
+	baseColor.r *= 0.5;
+	baseColor.b *= 0.5;
+	baseColor *= 0.6;
 
+	// noise
+	float randomDelta = (rand(vTextureCoord + time*0.0001) * 2.0) - 1.0;
+	vec4 noise = vec4(1);
+	noise *= randomDelta;
+
+
+	vec4 color = (baseColor*19.0 + noise) / 20.0;
+
+	// scanlines
 	/*
-	float xt = mod(t, 1.0);
-	float yt = mod(t, 1.0);
-	float xd = 1.0 - (abs(xt - vTextureCoord.x)/0.01);
-	float yd = 1.0 - (abs(yt - vTextureCoord.y)/0.01);
+	vec2 modT = vec2(mod(time*0.1, 0.1)) - 0.05;
+	vec2 modPos = vec2(mod(vTextureCoord, 0.1));
+	vec2 dist =(modT - modPos)/0.1;
+	color.r *= dist.x;
+	color.g *= dist.x;
 	*/
-	gl_FragColor = (1.0 - vec4(vd.x*vd.y*0.1));
-	if (gl_FragColor.r < 0.1) {
-		gl_FragColor = vec4(0.2, 0.3, 0.1, 1.0);
-	}
+
+	gl_FragColor = color;
 }
 
 void main(void) {
@@ -76,14 +86,15 @@ void main(void) {
 	float distance = distance(vTextureCoord, uOrigin);
 	if (distance < uRadius) {
         if (uInShop.x > 0.0) {
-            retroPlasma();
+            //retroPlasma();
         } else {
             gl_FragColor = color;
         }
 	} else if (distance < 0.5) {
-		gl_FragColor = vec4((distance )/1.5);
+		vec2 pos = vTextureCoord + time*4.0;
+		gl_FragColor = vec4(1.0, 1.0, 1.0 - cos(pos.x + time)*cos(pos.y + time), 1.0);
 	} else {
-		//outside();
+		outside(distance);
 	}
 
 	gl_FragColor.a = 1.0;

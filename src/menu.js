@@ -9,16 +9,18 @@ class Menu {
 			const o = menu.options[i];
 
 			const text = game.phaser.add.text(menu.x, menu.y + (i*40), o.text, {
-				font: "32px slkscr",
-				fill: i == 0 ? "#FF0000" : "#FFFFFF",
+				font: "24px slkscr",
+				fill: i == 0 ? "#f1f1aa" : "#FFFFFF",
 				align: "left",
 				wordWrap: true,
-                stroke: "#000000",
-                strokeThickness: 8,
+                stroke: "#444400",
+                strokeThickness: 2,
 				wordWrapWidth: 600
 			});
 			text.fixedToCamera = true;
 			text.bringToTop();
+
+			menu.options[i].textEl = text;
 
 			this.destroyables.push(text);
 			this.menuOptionSprites.push(text);
@@ -46,13 +48,13 @@ class Menu {
 	selectOption(idx) {
 		this.selectedIdx = idx;
 		for(let i = 0; i < this.menu.options.length; i++) {
-			this.menuOptionSprites[i].fill = i == idx ? "#FF0000" : "#FFFFFF";
+			this.menuOptionSprites[i].fill = i == idx ? "#f1f1aa" : "#FFFFFF";
 		}
 	}
 
 	confirmOption() {
 		const opt = this.menu.options[this.selectedIdx];
-		opt.callback.bind(opt.context)();
+		opt.callback.bind(opt.context)(opt);
 	}
 
 	update() {
