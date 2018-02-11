@@ -13,6 +13,7 @@ class GameController {
 		this.state = PLAY_STATES.IN_BETWEEN_WAVES;
 		this.progSvc = new ProgressionService();
 
+		this.diedAt = game.phaser.time.now;
 		this.destroyables = [];
 		this.destroyed = false;
 
@@ -57,6 +58,7 @@ class GameController {
 		this.uiEls.spdLbl = this._addUIText(620, 650, 18, "SPD.1");
 		this.uiEls.accLbl = this._addUIText(620, 670, 18, "ACC.1");
 		this.uiEls.hpLbl = this._addUIText(540, 670, 18, "HP.1");
+		this.uiEls.crcLbl = this._addUIText(540, 650, 18, "CRC.1");
 
 		this.uiEls.wavLbl = this._addUIText(20, 670, 18, "WAVE 1");
 		this.uiEls.crdLbl = this._addUIText(20, 650, 18, "$0");
@@ -78,6 +80,7 @@ class GameController {
 		this.uiEls.spdLbl.text = "SPD." + this.progSvc.playerStats.speed.level;
 		this.uiEls.accLbl.text = "ACC." + this.progSvc.playerStats.accuracy.level;
 		this.uiEls.hpLbl.text  = "HP." + this.progSvc.playerStats.hp.level;
+		this.uiEls.crcLbl.text  = "CRC." + this.progSvc.playerStats.critChance.level;
 
 		this.uiEls.wavLbl.text = "WAVE " + this.progSvc.waveNumber;
 		this.uiEls.crdLbl.text = "$" + this.progSvc.credits;
@@ -104,6 +107,11 @@ class GameController {
 	die() {
 		if (this.state == PLAY_STATES.DEAD) return;
 		this.state = PLAY_STATES.DEAD;
+		this.diedAt = game.phaser.time.now;
+
+		game.audio.playSfx(SFX_TYPES.EXPL)
+		setTimeout(() => game.audio.playSfx(SFX_TYPES.EXPL), 200);
+		setTimeout(() => game.audio.playSfx(SFX_TYPES.EXPL), 400);
 
 		game.utils.effect(this.player.sprite.position.x, this.player.sprite.position.y, "lgexpl", this.worldRotGroup)
 		setTimeout(() => game.utils.effect(this.player.sprite.position.x + (Math.random()-0.5)*40, this.player.sprite.position.y  + (Math.random()-0.5)*40, "lgexpl", this.worldRotGroup), 50);
@@ -233,6 +241,8 @@ class GameController {
 
         this.state = PLAY_STATES.ENDING_WAVE;
 
+        game.audio.playSfx(SFX_TYPES.WIN);
+
 		const endText = game.phaser.add.text(C.SCREEN_WIDTH/2, -200, "WAVE COMPLETE", {
 			font: "60px slkscr",
 			fill: "#ffffff",
@@ -311,7 +321,7 @@ class GameController {
             }
 
             menuOpts.push({
-            	text: "No Upgrade",
+            	text: "continue",
             	callback: () => selectUpgradeCb(),
             	context: this
             });
@@ -361,7 +371,7 @@ class GameController {
 	}
 
 	update() {
-		if (this.state == PLAY_STATES.DEAD) {
+		if (this.state == PLAY_STATES.DEAD && game.phaser.time.now - this.diedAt > 2000) {
 			if (game.input.isShootDown()) {
 				game.switchState(GAME_STATES.TITLE);
 			}
@@ -394,7 +404,7 @@ class GameController {
 			for(let b of this.player.bullets) {
 				game.phaser.physics.arcade.collide(b.sprite, e.sprite, () => {
 					b.dead = true;
-					e.onHit(b.damage);
+					e.onHit(b.damage, b.critHit);
 
 					if (e.health <= 0) {
 						let nCredits = 50;
@@ -413,6 +423,7 @@ class GameController {
 				const t = game.phaser.time.now;
 				if (t - this.player.lastHitAt > 500) {
 					this.player.lastHitAt = t;
+					game.audio.playSfx(SFX_TYPES.EXPL2);
 					this.hp--;
 					this.updateUI();
 				}
@@ -425,6 +436,7 @@ class GameController {
 
 						const t = game.phaser.time.now;
 						if (t - this.player.lastHitAt > 500) {
+							game.audio.playSfx(SFX_TYPES.EXPL2);
 							this.player.lastHitAt = t;
 							this.hp--;
 							this.updateUI();

@@ -12,6 +12,8 @@ class Player {
 		this.cameraTarget = game.phaser.add.sprite(400, 500);
 		this.lastHitAt = 0;
 
+		this.nShots = 0;
+
 
 		this.overlayShader = game.phaser.add.filter("EnemyOverlay", this.sprite.texture.width, this.sprite.texture.height);
 		this.overlayShader.colorR = 1;
@@ -91,11 +93,20 @@ class Player {
 		const t = game.phaser.time.now;
 		if (t - this.lastShotAt > this.progSvc.playerStats.rateOfFire.value) {
 			this.lastShotAt = t;
+			this.nShots++;
+			game.audio.playSfx(this.nShots % 2 == 0 ? SFX_TYPES.SHOOT1 : SFX_TYPES.SHOOT2);
 
+			let critRoll = Math.random();
+			let critHit = critRoll < this.progSvc.playerStats.critChance.value;
 			let damage = this.progSvc.playerStats.damage.value;
+
 			damage *= (Math.random()*0.5)+1;
+			if (critHit) {
+				damage *= 2.25;
+			}
 			damage = Math.round(damage);
-			this.bullets.push(new PlayerBullet(this.sprite.position.x, this.sprite.position.y, this.angle, this.group, this.progSvc.playerStats.shotSpeed.value, this.progSvc.playerStats.range.value, damage, this.progSvc.playerStats.accuracy.value));
+
+			this.bullets.push(new PlayerBullet(this.sprite.position.x, this.sprite.position.y, this.angle, this.group, this.progSvc.playerStats.shotSpeed.value, this.progSvc.playerStats.range.value, damage, this.progSvc.playerStats.accuracy.value, critHit));
 
 			const theta = this.sprite.angle*Math.PI/180 - (Math.PI/2);
 			//this.sprite.body.velocity.x += Math.cos(theta)*-50;
@@ -113,8 +124,9 @@ class Player {
 }
 
 class PlayerBullet {
-	constructor(x, y, theta, group, shotSpeed, range, damage, accuracy) {
+	constructor(x, y, theta, group, shotSpeed, range, damage, accuracy, critHit) {
 		this.range = range;
+		this.critHit = critHit;
 		this.sprite = game.phaser.add.sprite(x, y, "bullet");
 		this.damage = damage;
 		this.sprite.anchor.set(0.5);

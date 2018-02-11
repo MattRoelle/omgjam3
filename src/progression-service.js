@@ -5,7 +5,8 @@ const UPGRADE_TYPES = {
 	SPEED_UP: 4,
 	RANGE_UP: 5,
 	ACC_UP: 6,
-	HP_UP: 7
+	HP_UP: 7,
+	CRC_UP: 8
 };
 
 class ProgressionService {
@@ -21,7 +22,8 @@ class ProgressionService {
 			range: { value: 400, level: 1 },
 			speed: { value: 11, level: 1 },
 			accuracy: { value: 0.3, level: 1 },
-			hp:  { value: 1, level: 1 }
+			hp:  { value: 3, level: 1 },
+			critChance: { value: 0.1, level: 1 }
 		};
 	}
 
@@ -39,6 +41,7 @@ class ProgressionService {
 			case UPGRADE_TYPES.SPEED_UP: return baseCost + (this.playerStats.speed.level*100)*2;
 			case UPGRADE_TYPES.ACC_UP: return baseCost + (this.playerStats.accuracy.level*100)*2;
 			case UPGRADE_TYPES.HP_UP: return baseCost + (this.playerStats.hp.level*this.playerStats.hp.level)*100;
+			case UPGRADE_TYPES.CRC_UP: return baseCost + (this.playerStats.hp.level*100)*2.75;
 		}
 	}
 
@@ -86,6 +89,14 @@ class ProgressionService {
 			));
 		}
 
+		if (this.playerStats.critChance.level < 6) {
+			upgrades.push(new Upgrade(
+				UPGRADE_TYPES.CRC_UP,
+				this.getCost(UPGRADE_TYPES.CRC_UP),
+				this.playerStats.critChance.level
+			));
+		}
+
 		upgrades.push(new Upgrade(
 			UPGRADE_TYPES.DMG_UP, 
 			this.getCost(UPGRADE_TYPES.DMG_UP),
@@ -119,7 +130,7 @@ class ProgressionService {
 				upgrade.valid = upgrade.currentLevel < 4;
 				break;
 			case UPGRADE_TYPES.DMG_UP:
-				this.playerStats.damage.value *= 1.6; 
+				this.playerStats.damage.value *= 1.85; 
 				this.playerStats.damage.value = Math.round(this.playerStats.damage.value);
 				this.playerStats.damage.level++;
 				upgrade.valid = true;
@@ -144,6 +155,11 @@ class ProgressionService {
 				this.playerStats.hp.level++;
 				upgrade.valid = true;
 				break;
+			case UPGRADE_TYPES.CRC_UP:
+				this.playerStats.critChance.value += 0.1;
+				this.playerStats.critChance.level++;
+				upgrade.valid = upgrade.currentLevel < 6;
+				break;
 		}
 
 		upgrade.cost = this.getCost(upgrade.type);
@@ -154,7 +170,7 @@ class ProgressionService {
 	getEnemies() {
 		const ret = [];
 		const n = this.waveNumber*1.333;
-		const nEnemies = Math.min(25, (n*0.75) + (Math.random()*n*0.25)) + 1;
+		const nEnemies = Math.min(15, (n*0.75) + (Math.random()*n*0.25)) + 1;
 
 		while(ret.length < nEnemies) {
 			ret.push(
@@ -185,6 +201,7 @@ class Upgrade {
 			case UPGRADE_TYPES.SPEED_UP: return "Speed - Lv" + this.currentLevel;
 			case UPGRADE_TYPES.ACC_UP: return "Accuracy - Lv" + this.currentLevel;
 			case UPGRADE_TYPES.HP_UP: return "HP - Lv" + this.currentLevel;
+			case UPGRADE_TYPES.CRC_UP: return "Crit Chance - Lv" + this.currentLevel;
 		}
 	}
 }

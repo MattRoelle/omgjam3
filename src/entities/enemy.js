@@ -80,13 +80,17 @@ class Enemy {
 	die() {
 		if (this.dead) return;
 		game.utils.effect(this.sprite.position.x, this.sprite.position.y, "lgexpl", this.group);
+		game.audio.playSfx(SFX_TYPES.EXPL2);
 		this.dead = true;
 		this.destroy();
 	}
 
-	onHit(damage) {
+	onHit(damage, critHit) {
 		this.lastHitAt = game.phaser.time.now;
-		game.utils.dmgNumber(this.sprite.x, this.sprite.y, damage, this.group);
+		game.utils.dmgNumber(this.sprite.x, this.sprite.y, damage, this.group,
+			critHit ? "#FFFF00" : "#FF0000");
+
+		game.audio.playSfx(SFX_TYPES.EXPL);
 		this.health -= damage;
 		//this.hpBar.clear();
 	}

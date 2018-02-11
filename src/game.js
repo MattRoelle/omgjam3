@@ -29,6 +29,9 @@ class Game {
 	switchState(state, stateParams) {
 		this.beginSwitchState(() => {
 			if (this.controller) this.controller.destroy();
+			game.phaser.camera.unfollow();
+			game.phaser.camera.resetFX();
+			game.phaser.camera.setPosition(0, 0);
 			this.controller = new (controllerCtorLookup[state])(stateParams);
 			this.state = state;
 			this.finishSwitchState();
@@ -45,6 +48,16 @@ class Game {
 		else this.fadeIn(cb);
 	}
 
+	mute() {
+		this.audio.toggleMute();
+		if (!this.audio.muted) {
+			this.muteBtn.text = "mute";
+		} else {
+			this.muteBtn.text = "unmute";
+		}
+
+	}
+
 	fullscreen() {
 		this.phaser.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 		this.phaser.scale.startFullScreen(false);
@@ -56,6 +69,32 @@ class Game {
 	}
 
 	create() {
+		this.fullscreenBtn = this.phaser.add.text(5, 0, "fullscreen", {
+			font: "16px slkscr",
+			fill: "#ffffff",
+			stroke: "#000000",
+			strokeThickness: 2,
+			align: "left"
+		});
+		this.fullscreenBtn.fixedToCamera = true;
+		this.fullscreenBtn.inputEnabled = true;
+		this.fullscreenBtn.events.onInputDown.add(() => {
+			this.fullscreen();
+		}, this);
+
+		this.muteBtn = this.phaser.add.text(600, 0, "mute", {
+			font: "16px slkscr",
+			fill: "#ffffff",
+			stroke: "#000000",
+			strokeThickness: 2,
+			align: "left"
+		});
+		this.muteBtn.fixedToCamera = true;
+		this.muteBtn.inputEnabled = true;
+		this.muteBtn.events.onInputDown.add(() => {
+			this.mute();
+		}, this);
+
 		game.phaser.physics.arcade.TILE_BIAS = 40;
 		initWorldShader(this.phaser.cache.getText("world-rotation"));
 		initEnemyOverlayShader(this.phaser.cache.getText("enemy-overlay"));
@@ -63,24 +102,29 @@ class Game {
 		this.input.init();
 
 		const _this = this;
-		_this.switchState(GAME_STATES.IN_GAME);
+		_this.switchState(GAME_STATES.TITLE);
 		
-		this.audio.toggleMute();
 		game.phaser.stage.backgroundColor = "#000000";
 
-		document.getElementById("fullscreen").addEventListener("click", () => {
-			this.fullscreen();
-		});
+		this.audio.startMusic();
 	}
 
 	fadeOut(cb) {
-		!!cb && cb();
+		this.phaser.camera.fade(0x000000, 1000);
+		setTimeout(() => {
+			this.phaser.camera.resetFX();
+			!!cb && cb();
+		}, 1000);
 		//const t = this.phaser.add.tween(this.pixelateFilter).to( { sizeX: 20, sizeY: 20 }, 400, "Quad.easeInOut", true, 0);
 		//if (!!cb) t.onComplete.add(cb);
 	}
 
 	fadeIn(cb) {
-		!!cb && cb();
+		this.phaser.camera.flash(0x000000, 1000);
+		setTimeout(() => {
+			this.phaser.camera.resetFX();
+			!!cb && cb();
+		}, 1000);
 		//const t = this.phaser.add.tween(this.pixelateFilter).to( { sizeX: 1, sizeY: 1 }, 400, "Quad.easeInOut", true, 0);
 		//if (!!cb) t.onComplete.add(cb);
 	}
@@ -131,7 +175,9 @@ class Game {
 	update() {
 		if (this.controller) this.controller.update();
 		this.input.update();
-		this.phaser.debug.text(this.phaser.time.fps || '--', 700, 14, "#00ff00"); 
+
+		this.fullscreenBtn.bringToTop();
+		this.muteBtn.bringToTop();
 	}
 
 	render() {

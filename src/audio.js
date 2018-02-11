@@ -1,31 +1,23 @@
 const SFX_TYPES = {
-	WALK: { 
-		key: "walk",
-		volume: 0.125
+	WIN: { 
+		key: "win",
+		volume: 0.4
 	},
-	WALK2: { 
-		key: "walk2",
-		volume: 0.125
+	SHOOT1: { 
+		key: "shoot1",
+		volume: 0.25
 	},
-	JUMP: { 
-		key: "jump",
-		volume: 0.3
+	SHOOT2: { 
+		key: "shoot2",
+		volume: 0.25
 	},
-	DEATH: { 
-		key: "death",
-		volume: 1
+	EXPL: { 
+		key: "expl",
+		volume: 0.45
 	},
-	DEATH_EXPLOSION: { 
-		key: "deathexpl",
-		volume: 0.7
-	},
-	DOOR: { 
-		key: "door",
-		volume: 0.2
-	},
-	DOOR2: { 
-		key: "door2",
-		volume: 0.2
+	EXPL2: { 
+		key: "expl2",
+		volume: 0.35
 	},
 };
  
@@ -51,15 +43,17 @@ class GameAudio {
 	}
 
 	startMusic() {
-		this.music = game.phaser.add.audio("music");
+		this.music = game.phaser.add.audio("theme");
 		this.music.loop = true;
 		this.music.volume = 0.45;
 		this.playMusic();
 	}
 
 	playSfx(s) {
+		try {
 		const sfx = game.phaser.add.audio(s.key);
 		sfx.volume = s.volume;
 		sfx.play();
+		} catch (e) {}
 	}
 }

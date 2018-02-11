@@ -9,10 +9,15 @@ class BouncerEnemy extends Enemy {
 		if (this.progSvc.waveNumber <= 3) {
 			this.health = 20;
 			this.health += this.progSvc.waveNumber*5;
-		} else {
+		} else if (this.progSvc.waveNumber <= 7) {
 			this.health = 10;
 			for(let i = 0; i < this.progSvc.waveNumber - 1; i++) {
 				this.health *= 1.8;
+			}
+		} else {
+			this.health = 10;
+			for(let i = 0; i < this.progSvc.waveNumber - 1; i++) {
+				this.health *= 2.1;
 			}
 		}
 

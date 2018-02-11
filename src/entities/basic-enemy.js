@@ -6,10 +6,15 @@ class BasicEnemy extends Enemy {
 		if (this.progSvc.waveNumber <= 3) {
 			this.health = 5;
 			this.health += this.progSvc.waveNumber*6;
-		} else {
+		} else if (this.progSvc.waveNumber <= 7) {
 			this.health = 10;
 			for(let i = 0; i < this.progSvc.waveNumber - 1; i++) {
 				this.health *= 1.6;
+			}
+		} else {
+			this.health = 10;
+			for(let i = 0; i < this.progSvc.waveNumber - 1; i++) {
+				this.health *= 2;
 			}
 		}
 
